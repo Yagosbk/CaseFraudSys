@@ -1,0 +1,162 @@
+@CaseFraudSys.Api_HostAddress = http://localhost:5067
+
+
+
+### Health check
+
+GET {{CaseFraudSys.Api_HostAddress}}/api/health
+
+Accept: application/json
+
+
+
+###
+
+
+
+### Cadastrar limite PIX (2.1)
+
+POST {{CaseFraudSys.Api_HostAddress}}/api/account-limits
+
+Content-Type: application/json
+
+
+
+{
+
+  "document": "12345678901",
+
+  "agency": "0001",
+
+  "account": "12345",
+
+  "pixLimit": 5000.00
+
+}
+
+
+
+###
+
+
+
+### Consultar limite (2.2)
+
+GET {{CaseFraudSys.Api_HostAddress}}/api/account-limits/0001/12345
+
+Accept: application/json
+
+
+
+###
+
+
+
+### Alterar limite PIX (2.3)
+
+PUT {{CaseFraudSys.Api_HostAddress}}/api/account-limits/0001/12345
+
+Content-Type: application/json
+
+
+
+{
+
+  "pixLimit": 3000.00
+
+}
+
+
+
+###
+
+
+
+### Transação PIX — valor dentro do limite (2.5)
+
+POST {{CaseFraudSys.Api_HostAddress}}/api/pix/transactions
+
+Content-Type: application/json
+
+
+
+{
+
+  "transactionId": "tx-001-aprovada",
+
+  "agency": "0001",
+
+  "account": "12345",
+
+  "amount": 1500.00
+
+}
+
+
+
+###
+
+
+
+### Transação PIX — idempotente (reenvio mesmo transactionId)
+
+POST {{CaseFraudSys.Api_HostAddress}}/api/pix/transactions
+
+Content-Type: application/json
+
+
+
+{
+
+  "transactionId": "tx-001-aprovada",
+
+  "agency": "0001",
+
+  "account": "12345",
+
+  "amount": 1500.00
+
+}
+
+
+
+###
+
+
+
+### Transação PIX — valor acima do limite (2.5)
+
+POST {{CaseFraudSys.Api_HostAddress}}/api/pix/transactions
+
+Content-Type: application/json
+
+
+
+{
+
+  "transactionId": "tx-002-negada",
+
+  "agency": "0001",
+
+  "account": "12345",
+
+  "amount": 9999.00
+
+}
+
+
+
+###
+
+
+
+### Remover registro (2.4)
+
+DELETE {{CaseFraudSys.Api_HostAddress}}/api/account-limits/0001/12345
+
+Accept: application/json
+
+
+
+###
+

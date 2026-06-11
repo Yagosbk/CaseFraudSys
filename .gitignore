@@ -1,0 +1,10 @@
+tools/
+bin/
+obj/
+.vs/
+*.user
+*.suo
+TestResults/
+coveragereport/
+coveragereport-test/
+reports/
