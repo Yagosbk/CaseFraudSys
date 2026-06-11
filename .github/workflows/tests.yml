@@ -24,14 +24,9 @@ jobs:
     runs-on: ubuntu-latest
     services:
       dynamodb:
-        image: amazon/dynamodb-local
+        image: amazon/dynamodb-local:latest
         ports:
           - 8000:8000
-        options: >-
-          --health-cmd "curl -f http://localhost:8000 || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     steps:
       - uses: actions/checkout@v4
 
@@ -39,6 +34,19 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+
+      - name: Wait for DynamoDB Local
+        run: |
+          for i in $(seq 1 30); do
+            if curl -s -o /dev/null http://localhost:8000; then
+              echo "DynamoDB Local is ready."
+              exit 0
+            fi
+            echo "Waiting for DynamoDB Local... ($i/30)"
+            sleep 2
+          done
+          echo "DynamoDB Local did not become ready in time."
+          exit 1
 
       - name: Run integration tests
         run: dotnet test tests/CaseFraudSys.Api.IntegrationTests --filter "Category=Integration" --verbosity normal
