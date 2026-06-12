@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CaseFraudSys.Api.Presentation.Controllers;
 
+// MVC (Web API): Controller fino — delega casos de uso aos Application Services.
 /// <summary>
 /// Endpoints de gestão de limites PIX por conta (requisitos 2.1–2.4).
 /// </summary>

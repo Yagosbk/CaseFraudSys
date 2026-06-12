@@ -56,13 +56,7 @@ public class PixTransactionServiceTests
     {
         SetupIdempotencyForNewTransaction("tx-2");
 
-        var account = new AccountLimit
-        {
-            Document = "12345678901",
-            Agency = "0001",
-            Account = "12345",
-            PixLimit = 1000
-        };
+        var account = AccountLimit.Restore("12345678901", "0001", "12345", 1000);
 
         _repository
             .Setup(r => r.GetByAccountAsync("0001", "12345", It.IsAny<CancellationToken>()))
@@ -84,13 +78,7 @@ public class PixTransactionServiceTests
     {
         SetupIdempotencyForNewTransaction("tx-3");
 
-        var account = new AccountLimit
-        {
-            Document = "12345678901",
-            Agency = "0001",
-            Account = "12345",
-            PixLimit = 500
-        };
+        var account = AccountLimit.Restore("12345678901", "0001", "12345", 500);
 
         _repository
             .Setup(r => r.GetByAccountAsync("0001", "12345", It.IsAny<CancellationToken>()))

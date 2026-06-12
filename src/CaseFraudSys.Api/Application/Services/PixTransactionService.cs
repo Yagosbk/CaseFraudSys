@@ -2,6 +2,7 @@ using System.Net;
 using CaseFraudSys.Api.Application.DTOs;
 using CaseFraudSys.Api.Domain.Exceptions;
 using CaseFraudSys.Api.Domain.Repositories;
+using CaseFraudSys.Api.Domain.ValueObjects;
 
 namespace CaseFraudSys.Api.Application.Services;
 
@@ -28,15 +29,13 @@ public class PixTransactionService : IPixTransactionService
         if (string.IsNullOrWhiteSpace(request.TransactionId))
             throw new ApiException("TransactionId é obrigatório.", HttpStatusCode.BadRequest);
 
-        if (string.IsNullOrWhiteSpace(request.Agency) || string.IsNullOrWhiteSpace(request.Account))
-            throw new ApiException("Agência e conta são obrigatórios.", HttpStatusCode.BadRequest);
-
         if (request.Amount <= 0)
             throw new ApiException("O valor da transação deve ser maior que zero.", HttpStatusCode.BadRequest);
 
         var transactionId = request.TransactionId.Trim();
-        var agency = request.Agency.Trim();
-        var account = request.Account.Trim();
+        var accountKey = AccountKey.Create(request.Agency, request.Account);
+        var agency = accountKey.Agency;
+        var account = accountKey.Account;
 
         await ValidateIdempotencyPayloadAsync(transactionId, agency, account, request.Amount, cancellationToken);
 

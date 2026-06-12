@@ -1,21 +1,10 @@
-using System.Text.RegularExpressions;
+using CaseFraudSys.Api.Domain.ValueObjects;
 
 namespace CaseFraudSys.Api.Application.Validators;
 
-public static partial class DocumentValidator
+public static class DocumentValidator
 {
-    public static bool IsValidCpf(string? document)
-    {
-        if (string.IsNullOrWhiteSpace(document))
-            return false;
+    public static bool IsValidCpf(string? document) => Cpf.TryCreate(document, out _);
 
-        var digits = NonDigitRegex().Replace(document, "");
-        return digits.Length == 11;
-    }
-
-    public static string Normalize(string document)
-        => NonDigitRegex().Replace(document, "");
-
-    [GeneratedRegex(@"\D")]
-    private static partial Regex NonDigitRegex();
+    public static string Normalize(string document) => Cpf.Create(document).Value;
 }

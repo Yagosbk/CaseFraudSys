@@ -29,14 +29,10 @@ public static class AccountLimitMapper
         };
     }
 
-    public static AccountLimit FromItem(Dictionary<string, AttributeValue> item)
-    {
-        return new AccountLimit
-        {
-            Document = item[DocumentAttribute].S,
-            Agency = item[AgencyAttribute].S,
-            Account = item[AccountAttribute].S,
-            PixLimit = decimal.Parse(item[PixLimitAttribute].N, System.Globalization.CultureInfo.InvariantCulture)
-        };
-    }
+    public static AccountLimit FromItem(Dictionary<string, AttributeValue> item) =>
+        AccountLimit.Restore(
+            item[DocumentAttribute].S,
+            item[AgencyAttribute].S,
+            item[AccountAttribute].S,
+            decimal.Parse(item[PixLimitAttribute].N, System.Globalization.CultureInfo.InvariantCulture));
 }

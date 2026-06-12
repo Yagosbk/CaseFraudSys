@@ -16,13 +16,7 @@ public class AccountLimitMapperTests
     [Fact]
     public void ToItem_AndFromItem_RoundTripPreservesData()
     {
-        var entity = new AccountLimit
-        {
-            Document = "12345678901",
-            Agency = "0001",
-            Account = "12345",
-            PixLimit = 5000.50m
-        };
+        var entity = AccountLimit.Restore("12345678901", "0001", "12345", 5000.50m);
 
         var item = AccountLimitMapper.ToItem(entity);
         var restored = AccountLimitMapper.FromItem(item);

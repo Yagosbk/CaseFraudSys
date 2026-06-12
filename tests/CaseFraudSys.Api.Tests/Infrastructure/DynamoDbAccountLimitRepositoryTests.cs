@@ -29,13 +29,7 @@ public class DynamoDbAccountLimitRepositoryTests
             .Setup(c => c.PutItemAsync(It.IsAny<PutItemRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PutItemResponse());
 
-        await _repository.CreateAsync(new AccountLimit
-        {
-            Document = "12345678901",
-            Agency = "0001",
-            Account = "12345",
-            PixLimit = 1000
-        });
+        await _repository.CreateAsync(AccountLimit.Restore("12345678901", "0001", "12345", 1000));
 
         _client.Verify(c => c.PutItemAsync(
             It.Is<PutItemRequest>(r => r.TableName == "AccountLimits"),
@@ -62,13 +56,7 @@ public class DynamoDbAccountLimitRepositoryTests
             .ReturnsAsync(new GetItemResponse
             {
                 IsItemSet = true,
-                Item = AccountLimitMapper.ToItem(new AccountLimit
-                {
-                    Document = "12345678901",
-                    Agency = "0001",
-                    Account = "12345",
-                    PixLimit = 1500
-                })
+                Item = AccountLimitMapper.ToItem(AccountLimit.Restore("12345678901", "0001", "12345", 1500))
             });
 
         var result = await _repository.GetByAccountAsync("0001", "12345");
@@ -84,13 +72,7 @@ public class DynamoDbAccountLimitRepositoryTests
             .Setup(c => c.UpdateItemAsync(It.IsAny<UpdateItemRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new UpdateItemResponse
             {
-                Attributes = AccountLimitMapper.ToItem(new AccountLimit
-                {
-                    Document = "12345678901",
-                    Agency = "0001",
-                    Account = "12345",
-                    PixLimit = 700
-                })
+                Attributes = AccountLimitMapper.ToItem(AccountLimit.Restore("12345678901", "0001", "12345", 700))
             });
 
         var result = await _repository.TryDebitPixLimitAsync("0001", "12345", 300);
@@ -111,13 +93,7 @@ public class DynamoDbAccountLimitRepositoryTests
             .ReturnsAsync(new GetItemResponse
             {
                 IsItemSet = true,
-                Item = AccountLimitMapper.ToItem(new AccountLimit
-                {
-                    Document = "12345678901",
-                    Agency = "0001",
-                    Account = "12345",
-                    PixLimit = 500
-                })
+                Item = AccountLimitMapper.ToItem(AccountLimit.Restore("12345678901", "0001", "12345", 500))
             });
 
         var result = await _repository.TryDebitPixLimitAsync("0001", "12345", 800);

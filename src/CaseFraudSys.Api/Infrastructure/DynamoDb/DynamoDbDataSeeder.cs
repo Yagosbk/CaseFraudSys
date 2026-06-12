@@ -47,13 +47,11 @@ public class DynamoDbDataSeeder
 
         foreach (var seed in accounts)
         {
-            var entity = new AccountLimit
-            {
-                Document = seed.Document,
-                Agency = seed.Agency,
-                Account = seed.Account,
-                PixLimit = seed.PixLimit
-            };
+            var entity = AccountLimit.Restore(
+                seed.Document,
+                seed.Agency,
+                seed.Account,
+                seed.PixLimit);
 
             try
             {

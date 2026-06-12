@@ -106,13 +106,7 @@ public class AccountLimitServiceTests
     {
         _repository
             .Setup(r => r.GetByAccountAsync("0001", "12345", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AccountLimit
-            {
-                Document = "12345678901",
-                Agency = "0001",
-                Account = "12345",
-                PixLimit = 2500
-            });
+            .ReturnsAsync(AccountLimit.Restore("12345678901", "0001", "12345", 2500));
 
         var result = await _service.GetByAccountAsync("0001", "12345");
 
@@ -124,18 +118,12 @@ public class AccountLimitServiceTests
     public async Task UpdateLimitAsync_WhenExists_ReturnsUpdated()
     {
         _repository
-            .Setup(r => r.UpdateLimitAsync("0001", "12345", 3000, It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+            .Setup(r => r.GetByAccountAsync("0001", "12345", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AccountLimit.Restore("12345678901", "0001", "12345", 2500));
 
         _repository
-            .Setup(r => r.GetByAccountAsync("0001", "12345", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AccountLimit
-            {
-                Document = "12345678901",
-                Agency = "0001",
-                Account = "12345",
-                PixLimit = 3000
-            });
+            .Setup(r => r.UpdateLimitAsync("0001", "12345", 3000, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
         var result = await _service.UpdateLimitAsync(
             "0001",
@@ -161,8 +149,8 @@ public class AccountLimitServiceTests
     public async Task UpdateLimitAsync_WhenNotFound_ThrowsNotFound()
     {
         _repository
-            .Setup(r => r.UpdateLimitAsync("0001", "99999", 500, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new ConditionalCheckFailedException("not found"));
+            .Setup(r => r.GetByAccountAsync("0001", "99999", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((AccountLimit?)null);
 
         var ex = await Assert.ThrowsAsync<ApiException>(() =>
             _service.UpdateLimitAsync("0001", "99999", new UpdateAccountLimitRequest { PixLimit = 500 }));

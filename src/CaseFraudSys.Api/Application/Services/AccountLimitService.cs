@@ -1,10 +1,10 @@
 using System.Net;
 using Amazon.DynamoDBv2.Model;
 using CaseFraudSys.Api.Application.DTOs;
-using CaseFraudSys.Api.Application.Validators;
 using CaseFraudSys.Api.Domain.Entities;
 using CaseFraudSys.Api.Domain.Exceptions;
 using CaseFraudSys.Api.Domain.Repositories;
+using CaseFraudSys.Api.Domain.ValueObjects;
 
 namespace CaseFraudSys.Api.Application.Services;
 
@@ -21,19 +21,10 @@ public class AccountLimitService : IAccountLimitService
     {
         ValidateRequiredFields(request.Document, request.Agency, request.Account);
 
-        if (!DocumentValidator.IsValidCpf(request.Document))
-            throw new ApiException("CPF inválido. Informe 11 dígitos.", HttpStatusCode.BadRequest);
-
-        if (request.PixLimit <= 0)
-            throw new ApiException("O limite PIX deve ser maior que zero.", HttpStatusCode.BadRequest);
-
-        var entity = new AccountLimit
-        {
-            Document = DocumentValidator.Normalize(request.Document),
-            Agency = request.Agency.Trim(),
-            Account = request.Account.Trim(),
-            PixLimit = request.PixLimit
-        };
+        var entity = AccountLimit.Create(
+            Cpf.Create(request.Document),
+            AccountKey.Create(request.Agency, request.Account),
+            request.PixLimit);
 
         try
         {
@@ -49,9 +40,9 @@ public class AccountLimitService : IAccountLimitService
 
     public async Task<AccountLimitResponse> GetByAccountAsync(string agency, string account, CancellationToken cancellationToken = default)
     {
-        ValidateAccountKeys(agency, account);
+        var key = AccountKey.Create(agency, account);
 
-        var entity = await _repository.GetByAccountAsync(agency.Trim(), account.Trim(), cancellationToken)
+        var entity = await _repository.GetByAccountAsync(key.Agency, key.Account, cancellationToken)
             ?? throw new ApiException("Conta não encontrada.", HttpStatusCode.NotFound);
 
         return ToResponse(entity);
@@ -63,31 +54,31 @@ public class AccountLimitService : IAccountLimitService
         UpdateAccountLimitRequest request,
         CancellationToken cancellationToken = default)
     {
-        ValidateAccountKeys(agency, account);
+        var key = AccountKey.Create(agency, account);
+        var existing = await _repository.GetByAccountAsync(key.Agency, key.Account, cancellationToken)
+            ?? throw new ApiException("Conta não encontrada.", HttpStatusCode.NotFound);
 
-        if (request.PixLimit <= 0)
-            throw new ApiException("O limite PIX deve ser maior que zero.", HttpStatusCode.BadRequest);
+        existing.UpdatePixLimit(request.PixLimit);
 
         try
         {
-            await _repository.UpdateLimitAsync(agency.Trim(), account.Trim(), request.PixLimit, cancellationToken);
+            await _repository.UpdateLimitAsync(key.Agency, key.Account, existing.PixLimit, cancellationToken);
         }
         catch (ConditionalCheckFailedException)
         {
             throw new ApiException("Conta não encontrada.", HttpStatusCode.NotFound);
         }
 
-        var updated = await _repository.GetByAccountAsync(agency.Trim(), account.Trim(), cancellationToken);
-        return ToResponse(updated!);
+        return ToResponse(existing);
     }
 
     public async Task DeleteAsync(string agency, string account, CancellationToken cancellationToken = default)
     {
-        ValidateAccountKeys(agency, account);
+        var key = AccountKey.Create(agency, account);
 
         try
         {
-            await _repository.DeleteAsync(agency.Trim(), account.Trim(), cancellationToken);
+            await _repository.DeleteAsync(key.Agency, key.Account, cancellationToken);
         }
         catch (ConditionalCheckFailedException)
         {
@@ -103,12 +94,6 @@ public class AccountLimitService : IAccountLimitService
         {
             throw new ApiException("Todos os campos são obrigatórios.", HttpStatusCode.BadRequest);
         }
-    }
-
-    private static void ValidateAccountKeys(string agency, string account)
-    {
-        if (string.IsNullOrWhiteSpace(agency) || string.IsNullOrWhiteSpace(account))
-            throw new ApiException("Agência e conta são obrigatórios.", HttpStatusCode.BadRequest);
     }
 
     private static AccountLimitResponse ToResponse(AccountLimit entity) => new()

@@ -10,9 +10,3 @@ public interface IAccountLimitRepository
     Task DeleteAsync(string agency, string account, CancellationToken cancellationToken = default);
     Task<DebitResult> TryDebitPixLimitAsync(string agency, string account, decimal amount, CancellationToken cancellationToken = default);
 }
-
-public class DebitResult
-{
-    public bool Approved { get; init; }
-    public decimal RemainingLimit { get; init; }
-}
